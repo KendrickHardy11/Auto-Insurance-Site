@@ -1,0 +1,606 @@
+<html><head><title>466 Group Project</title></head><body><pre>
+   <?php
+
+     function draw_table($rows)
+     {
+       if(empty($rows)) {echo "<p>No results found.</p>";}
+       else
+       {
+         echo "<table border=1 cellspacing=1>";
+         echo "<tr>";
+         foreach($rows[0] as $key => $item)
+         {
+           echo "<th>$key</th>";
+         }
+         echo "</tr>";
+         foreach($rows as $row)
+         {
+           echo "<tr>";
+           foreach($row as $key => $item)
+           {
+             echo "<td>$item</td>";
+           }
+           echo "</tr>";
+         }
+         echo "</table>";
+       }
+     }
+
+      error_reporting(E_ALL);
+
+      $username = 'z1863509';  //change to yours
+      $password = '2001May25'; //change to yours
+
+      try
+      {
+        $dsn = "mysql:host=courses;dbname=z1863509";
+        $pdo = new PDO($dsn, $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+        //customer?
+        echo "<form method=POST action= >";
+        echo "<b>Are you a returning customer?</b>";
+        echo "\n";
+        echo '<select name="ans"/>';
+                 echo '<option>YES</option>';
+                 echo '<option>NO</option>';
+        echo '</select> <br/>';
+        echo '<input type="submit" name="go" value="go"/> <br/>';
+        echo "</form>";
+
+        if (!empty($_POST["ans"]) && $_POST["ans"] == "YES")
+        {
+          echo "<form method=POST action= >";
+          echo "<b>Insert Your Customer ID Number </b>";
+          echo "\n";
+          echo '<input type="text" name="cust_id" value=""/>';
+          echo '<input type="submit" name="go" value="go"/> <br/>';
+          echo "</form>";
+        }
+
+        if(!empty($_POST["cust_id"]))
+        {
+          $C_cart = $pdo->prepare("SELECT * FROM Customer WHERE Customer_ID = ?;");
+          $C_cart->execute(array($_POST["cust_id"]));
+          $rows = $C_cart->fetchALL(PDO::FETCH_ASSOC);
+          draw_table($rows);
+        }
+
+        if(!empty($_POST["ans"]) && $_POST["ans"] == "NO")
+        {
+          echo "<form method=POST action= >";
+          echo"<b>Enter your first name </b>";
+          echo"\n";
+          echo'<input type="text" name="f_name" value=""/>';
+          echo"\n";
+
+          echo"<b>Enter your last name </b>";
+          echo"\n";
+          echo'<input type="text" name="l_name" value=""/>';
+          echo"\n";
+
+          echo"<b>Enter your shipping address </b>";
+          echo"\n";
+          echo'<input type="text" name="s_address" value=""/>';
+          echo"\n";
+
+          echo"<b>Enter your billing address </b>";
+          echo"\n";
+          echo'<input type="text" name="b_address" value=""/>';
+          echo"\n";
+
+          echo"<b>Enter your email </b>";
+          echo"\n";
+          echo'<input type="text" name="email" value=""/>';
+          echo"\n";
+          echo '<input type="submit" name="go" value="go"/> <br/>';
+          echo "</form>";
+
+          if(empty($_POST["f_name"]))
+          {
+                echo"<p>All data fields but email must be filled</p>\n";
+                echo"<p>Please verify all data is entered</p>\n";
+          }
+          elseif(empty($_POST["l_name"]))
+          {
+                echo"<p>All data fields but email must be filled</p>\n";
+                echo"<p>Please verify all data is entered</p>\n";
+          }
+          elseif(empty($_POST["s_address"]))
+          {
+                echo"<p>All data fields but email must be filled</p>\n";
+                echo"<p>Please verify all data is entered</p>\n";
+          }
+          elseif(empty($_POST["b_address"]))
+          {
+                echo"<p>All data fields but email must be filled</p>\n";
+                echo"<p>Please verify all data is entered</p>\n";
+          }
+        }
+
+        if(!empty($_POST["f_name"]) && !empty($_POST["l_name"]) && !empty($_POST["s_address"]) && !empty($_POST["b_address"]))
+        {
+          //Now create a customer id number (next in order number)
+          $random_id = random_int(10000,99999);
+
+          $new_cust = $pdo->prepare("INSERT INTO Customer (`Customer_ID`, `F_Name`, `L_Name`, `Address_Shipping`, `Address_Billing`) VALUES (?, ?, ?, ?, ?);");
+          $new_cust->execute(array($random_id, $_POST["f_name"], $_POST["l_name"], $_POST["s_address"], $_POST["b_address"]));
+
+
+          //Now create a new customer cart entity with the correct info.
+
+          $new_cust = $pdo->prepare("SELECT * FROM Customer WHERE Customer_ID = ?;");
+          $new_cust->execute(array($random_id));
+          $rows = $new_cust->fetchALL(PDO::FETCH_ASSOC);
+          draw_table($rows);
+
+          // !!! (NO ORDER NUMBER TEXT GROUP ABOUT ISSUE) !!!
+        }
+
+        if(empty($_POST["ans"]))
+        {
+          echo"<b>!!! Please enter if you are a returning customer!!!</b>";
+          echo"\n";
+          echo"<p>You can not add items to your cart without doing so</p>";
+        }
+
+        //pick parts
+        echo "<form method=POST action= >";
+        echo "<b>choice parts and quanity</b>";
+        echo "\n";
+        echo "<p>Insert Your Customer ID Number </p>";
+        echo "\n";
+        echo '<input type="text" name="cust_id" value=""/>';
+        echo "\n";
+
+        echo '<input type="radio" name="part" value="Battery"/> Battery';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Brakes"/> Brakes';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Axle"/> Axle';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Fuel Injector"/> Fuel Injector';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Piston"/> Piston';
+        echo "\n";
+        echo '<input type="radio" name="part" value="A/C Compressor"/> A/C Compressor';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Radiator"/> Radiator';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Engine Fan"/> Engine Fan';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Clutch"/> Clutch';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Car Jack"/> Car Jack';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Spare Tire"/> Spare Tire';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Transmission"/> Transmission';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Shock Absorbers"/> Shock Absorbers';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Air Filter"/> Air Filter';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Spark Plugs"/> Spark Plugs';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Catalytic Converter"/> Catalytic Converter';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Muffler"/> Muffler';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Tire Pessure Gauge"/> Tire Pressure Gauge';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Alternator"/> Alternator';
+        echo "\n";
+        echo '<input type="radio" name="part" value="Power Steering Fluid"/> Power Steering Fluid';
+        echo "\n";
+
+        echo "<p>insert amount wanted</p>";
+        echo '<input type="text" name="amount" value=""/>';
+        echo "\n";
+        echo "\n";
+
+        echo '<input type="submit" name="add_cart" value="add to cart"/> <br/>';
+        echo '<input type="submit" name="view_cart" value="view your cart"/> <br/>';
+        echo '</form>';
+
+        //add to cart
+
+        if(empty($_POST["cust_id"]))
+        {
+          echo "ERROR: please insert your customer ID number";
+          echo "you CANNOT processed without it";
+          echo "\n";
+        }
+
+
+        if(!empty($_POST["cust_id"]) && !empty($_POST["amount"]) && !empty($_POST["part"]) && isset($_POST["add_cart"]))
+        {
+          if($_POST["part"] == "Battery")
+          {
+            $id = "1";
+            $price = "98.99";
+          }
+          if($_POST["part"] == "Brakes")
+          {
+            $id = "2";
+            $price = "132.99";
+          }
+          if($_POST["part"] == "Axle")
+          {
+            $id = "3";
+            $price = "82.99";
+          }
+          if($_POST["part"] == "Fuel Injector")
+          {
+            $id = "4";
+            $price = "45.99";
+          }
+          if($_POST["part"] == "Piston")
+          {
+            $id = "5";
+            $price = "34.99";
+          }
+          if($_POST["part"] == "A/C Compressor")
+          {
+            $id = "6";
+            $price = "85.99";
+          }
+          if($_POST["part"] == "Radiator")
+          {
+            $id = "7";
+            $price = "99.99";
+          }
+          if($_POST["part"] == "Engine Fan")
+          {
+            $id = "8";
+            $price = "75.99";
+          }
+          if($_POST["part"] == "Clutch")
+          {
+            $id = "9";
+            $price = "125.99";
+          }
+          if($_POST["part"] == "Car Jack")
+          {
+            $id = "10";
+            $price = "89.99";
+          }
+          if($_POST["part"] == "Spare Tire")
+          {
+            $id = "11";
+            $price = "64.99";
+          }
+          if($_POST["part"] == "Transmission")
+          {
+            $id = "12";
+            $price = "795.99";
+          }
+          if($_POST["part"] == "Shock Absorbers")
+          {
+            $id = "13";
+            $price = "95.99";
+          }
+          if($_POST["part"] == "Air Filter")
+          {
+            $id = "14";
+            $price = "12.99";
+          }
+          if($_POST["part"] == "Spark Plugs")
+          {
+            $id = "15";
+            $price = "9.99";
+          }
+          if($_POST["part"] == "Catalytic Converter")
+          {
+            $id = "16";
+            $price = "75.99";
+          }
+          if($_POST["part"] == "Muffler")
+          {
+            $id = "17";
+            $price = "36.99";
+          }
+          if($_POST["part"] == "Tire Pressue Gauge")
+          {
+            $id = "18";
+            $price = "9.99";
+          }
+          if($_POST["part"] == "Alternator")
+          {
+            $id = "19";
+            $price = "59.99";
+          }
+          if($_POST["part"] == "Power Steering Fluid")
+          {
+            $id = "20";
+            $price = "6.99";
+          }
+
+          $add_cart = $pdo->prepare("INSERT INTO Customer_Cart VALUES(?, ?, ?, ?, ?, ?);");
+          $add_cart->execute(array($_POST["cust_id"], $id, $_POST["part"], $_POST["amount"], $price,  $_POST["amount"] * $price));
+
+          echo "<b>Your Overall total is: </b>";
+          $Total_math = $pdo->query("SELECT Subtotal, SUM(Subtotal) AS Subtotal FROM Customer_Cart GROUP BY Subtotal WITH ROLLUP;");
+          $rows = $Total_math->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+
+
+         //need to do something about max amount that can be ordered
+        }
+
+        //view cart
+        if (!empty($_POST["cust_id"]) || empty($_POST["cust_id"]))
+        {
+          $view_cart = $pdo->query("SELECT * FROM Customer_Cart;");
+          $rows = $view_cart->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+
+        }
+
+
+        echo "<form method=POST action= >";
+        echo "\n";
+        echo "<b>How do you want to change your cart?</b>";
+        echo "\n";
+        echo '<select name="ans"/>';
+                 echo '<option>Pick option</option>';
+                 echo '<option>DELETE ITEM</option>';
+                 echo '<option>INCREASE AMOUNT</option>';
+                 echo '<option>DECREASE AMOUNT</option>';
+                 echo '<option>ADD ITEM</option>';
+        echo '</select> <br/>';
+        echo '<input type="submit" name="go" value="go"/> <br/>';
+        echo '</form>';
+
+        if(!empty($_POST["ans"]) && $_POST["ans"] == "DELETE ITEM")
+        {
+          echo "<form method=POST action= >";
+          echo "<b>Change cart</b>";
+          echo "\n";
+          echo "<p>Enter the part number you want to delete</p>";
+          echo "\n";
+          echo '<input type="text" name="part" value=""/>';
+          echo '<input type="submit" name="delete_new_cart" value="Delete item"/> <br/>';
+          echo '</form>';
+        }
+
+        //change cart
+        if (!empty($_POST["part"]) && isset($_POST["delete_new_cart"]))
+        {
+          $rs = $pdo->prepare("DELETE FROM Customer_Cart WHERE Part_Num = ?;");
+          $rs->execute(array($_POST["part"]));
+          $rss = $pdo->query("SELECT * FROM Customer_Cart;");
+          $rows = $rss->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+        }
+
+        elseif(!empty($_POST["ans"]) && $_POST["ans"] == "INCREASE AMOUNT")
+        {
+          echo "<form method=POST action= >";
+          echo "<b>Change cart</b>";
+          echo "\n";
+          echo "<p>Enter the part number you want to edit</p>";
+          echo "\n";
+          echo '<input type="text" name="part" value=""/>';
+          echo "<p>How many do you want to add?</p>";
+          echo "\n";
+          echo '<input type="text" name="change" value=""/>';
+          echo "\n";
+          echo '<input type="submit" name="increase_new_cart" value="Edit cart"/> <br/>';
+          echo '</form>';
+        }
+
+        //change cart
+        if (!empty($_POST["part"]) && !empty($_POST["change"]) && isset($_POST["increase_new_cart"]))
+        {
+          $rs = $pdo->prepare("UPDATE Customer_Cart SET Amount = Amount + ? WHERE Part_Num = ?;");
+          $rs->execute(array($_POST["change"], $_POST["part"]));
+          $rss = $pdo->query("SELECT * FROM Customer_Cart;");
+          $rows = $rss->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+        }
+
+        elseif(!empty($_POST["ans"]) && $_POST["ans"] == "DECREASE AMOUNT")
+        {
+          echo "<form method=POST action= >";
+          echo "<b>Change cart</b>";
+          echo "\n";
+          echo "<p>Enter the part number you want to edit</p>";
+          echo "\n";
+          echo '<input type="text" name="part" value=""/>';
+          echo "<p>How many do you want to remove?</p>";
+          echo "\n";
+          echo '<input type="text" name="change" value=""/>';
+          echo "\n";
+          echo '<input type="submit" name="decrease_new_cart" value="Edit cart"/> <br/>';
+          echo '</form>';
+        }
+
+        //change cart
+        if (!empty($_POST["part"]) && !empty($_POST["change"]) && isset($_POST["decrease_new_cart"]))
+        {
+          $rs = $pdo->prepare("UPDATE Customer_Cart SET Amount = Amount - ? WHERE Part_Num = ?;");
+          $rs->execute(array($_POST["change"], $_POST["part"]));
+          $rss = $pdo->query("SELECT * FROM Customer_Cart;");
+          $rows = $rss->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+        }
+
+        elseif(!empty($_POST["ans"]) && $_POST["ans"] == "ADD ITEM")
+        {
+          echo "<form method=POST action= >";
+          echo "<b>Change cart</b>";
+          echo "\n";
+          echo "<p>Enter your customer id</p>";
+          echo "\n";
+          echo '<input type="text" name="cust_id" value=""/>';
+          echo "<p>Enter the part name you want to add</p>";
+          echo "\n";
+          echo '<input type="text" name="part" value=""/>';
+          echo "<p>How many do you want to add?</p>";
+          echo "\n";
+          echo '<input type="text" name="amount" value=""/>';
+          echo "\n";
+          echo '<input type="submit" name="add_new_cart" value="Add item"/> <br/>';
+          echo '</form>';
+
+       }
+
+        //change cart
+        if (!empty($_POST["cust_id"]) && !empty($_POST["part"]) && !empty($_POST["amount"]) && isset($_POST["add_new_cart"]))
+        {
+
+          if($_POST["part"] == "Battery")
+          {
+            $id = "1";
+            $price = "98.99";
+          }
+          if($_POST["part"] == "Brakes")
+          {
+            $id = "2";
+            $price = "132.99";
+          }
+          if($_POST["part"] == "Axle")
+          {
+            $id = "3";
+            $price = "82.99";
+          }
+          if($_POST["part"] == "Fuel Injector")
+          {
+            $id = "4";
+            $price = "45.99";
+          }
+          if($_POST["part"] == "Piston")
+          {
+            $id = "5";
+            $price = "34.99";
+          }
+          if($_POST["part"] == "A/C Compressor")
+          {
+            $id = "6";
+            $price = "85.99";
+          }
+          if($_POST["part"] == "Radiator")
+          {
+            $id = "7";
+            $price = "99.99";
+          }
+          if($_POST["part"] == "Engine Fan")
+          {
+            $id = "8";
+            $price = "75.99";
+          }
+          if($_POST["part"] == "Clutch")
+          {
+            $id = "9";
+            $price = "125.99";
+          }
+          if($_POST["part"] == "Car Jack")
+          {
+            $id = "10";
+            $price = "89.99";
+          }
+          if($_POST["part"] == "Spare Tire")
+          {
+            $id = "11";
+            $price = "64.99";
+          }
+          if($_POST["part"] == "Transmission")
+          {
+            $id = "12";
+            $price = "795.99";
+          }
+          if($_POST["part"] == "Shock Absorbers")
+          {
+            $id = "13";
+            $price = "95.99";
+          }
+          if($_POST["part"] == "Air Filter")
+          {
+            $id = "14";
+            $price = "12.99";
+          }
+          if($_POST["part"] == "Spark Plugs")
+          {
+            $id = "15";
+            $price = "9.99";
+          }
+          if($_POST["part"] == "Catalytic Converter")
+          {
+            $id = "16";
+            $price = "75.99";
+          }
+          if($_POST["part"] == "Muffler")
+          {
+            $id = "17";
+            $price = "36.99";
+          }
+          if($_POST["part"] == "Tire Pressue Gauge")
+          {
+            $id = "18";
+            $price = "9.99";
+          }
+          if($_POST["part"] == "Alternator")
+          {
+            $id = "19";
+            $price = "59.99";
+          }
+          if($_POST["part"] == "Power Steering Fluid")
+          {
+            $id = "20";
+            $price = "6.99";
+          }
+
+          $rs = $pdo->prepare("INSERT INTO Customer_Cart VALUES(?, ?, ?, ?, ?, ?);");
+          $rs->execute(array($_POST["cust_id"], $id, $_POST["part"], $_POST["amount"], $price,  $_POST["amount"] * $price));
+          $rss = $pdo->query("SELECT * FROM Customer_Cart;");
+          $rows = $rss->fetchAll(PDO::FETCH_ASSOC);
+          draw_table($rows);
+        }
+
+        //payment
+        echo "<form method=POST action= >";
+        echo "<b>payment</b>";
+        echo "\n";
+        echo "<p>insert Customer ID</p>";
+        echo '<input type="text" name="cust_id" value=""/> <br/>';
+        echo "<p>insert email</p>";
+        echo '<input type="text" name="email" value=""/> <br/>';
+        echo "<p>insert card info</p>";
+        echo '<input type="text" name="card_num" value=""/> <br/>';
+        echo '<input type="submit" name="pay" value="pay"/> <br/>';
+        echo '</form>';
+
+        //add person to database
+        if (!empty($_POST["cust_id"]) && !empty($_POST["email"]) && !empty($_POST["card_num"]) && isset($_POST["pay"]))
+        {
+          $random_order_num = random_int(10,99);
+          $random_confir_num = random_int(100000,999999);
+          $part = $pdo->prepare("INSERT INTO Orders(Part_Num) SELECT Part_Num FROM Customer_Cart WHERE Customer_ID = ?;");
+          $part->execute(array($_POST["cust_id"]));
+          $date = $pdo->prepare("INSERT INTO ORDERS(Date_of_Order) SELECT CAST(NOW() AS Date;");
+          $random_shipping_num = random_int(100000,999999);
+          $status = "confirmed";
+          $cost = $pdo->prepare("INSERT INTO Orders(Cost) SELECT Subtotal FROM Customer_Cart WHERE Customer_ID = ?;");
+          $cost->execute(array($_POST["cust_id"]));
+          $amount = $pdo->prepare("INSERT INTO Orders(Amount) SELECT Amount FROM Customer_Cart WHERE Customer_ID = ?;");
+          $amount->execute(array($_POST["cust_id"]));
+
+          $new_order = $pdo->prepare("INSERT INTO Orders (`Order_Num`, `Customer_ID`, `Confirmation_Num`, `Shipping_Num`, `Status_Order`,) VALUES (?, ?, ?, ?, ?);");
+          $new_order->execute(array($random_order_num, $_POST["cust_id"], $random_confir_num, $random_shipping_num, $status));
+
+          $new_order = $pdo->prepare("SELECT * FROM Orders WHERE Customer_ID = ?;");
+          $new_order->execute(array($_POST["cust_id"]));
+          $rows = $new_order->fetchALL(PDO::FETCH_ASSOC);
+          draw_table($rows);
+
+        }
+      }
+
+      catch(PDOexception $e)
+      {
+        echo "Connection to database failed: " . $e->getMessage();
+      }
+   ?>
+
+</pre></body></html>

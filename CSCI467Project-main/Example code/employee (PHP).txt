@@ -1,0 +1,142 @@
+<html><head><title>Employee Page</title></head><body>
+<?php
+	include("draw_table.php");
+	
+	echo "<h1>Employee Page</h1>";
+
+	$username='z1873203';  //change
+	$password='2001Jul31'; //change
+
+	try{
+		$dsn = "mysql:host=courses;dbname=z1873203";
+		$pdo = new PDO($dsn,$username,$password);
+
+		$rs = $pdo->query("SELECT Part_Num,Name,Amount FROM Part;"); //accessing Parts table 
+		$rows = $rs->fetchAll(PDO::FETCH_ASSOC);
+		draw_table($rows);  //print inventory in table format 
+
+		$rs = $pdo->query("SELECT * FROM Orders WHERE Status_Order = 'Not Shipped';");   
+		$rows = $rs->fetchAll(PDO::FETCH_ASSOC);
+		
+		echo "<h2> Outstanding Orders </h2>"; 
+
+		foreach($rows as $row){  //Print all orders that have not been shipped 
+			echo "Order Number: " . $row["Order_Num"] . "  Customer: " . $row["Customer_ID"]. "  Confirmation Number: " . $row["Confirmation_Num"] . "  Part Number: ". $row["Part_Num"] . "  Date Ordered: " . $row["Date_of_Order"] . "  Shipping Number: " . $row["Shipping_Num"] . "  Cost: $" . $row["Cost"] . " Amount: " . $row["Amount"] . " Status: ". $row["Status_Order"];
+			echo "<br />";
+		}
+
+		echo "<br/>";
+		echo "<h2> Edit Order </h2>"; // print Edit Order header 
+		
+		echo "<p>Edit Orders Shipping Address</p>";
+		
+		echo "<form method=POST action= >";                                         //form used to get new shipping address 
+		echo '<input type="text" name="order" value="Enter Order Number"/>';        //get the order number of the order they would like to change
+		echo '<input type="text" name="change" value="Enter New Address"/>';        //get the new address from employee input
+		echo '<input type="submit" value="submit"/>';
+		echo "</form>";
+
+		echo "<br/>";
+		echo "<p>Edit Status of Order</p>";
+
+		echo "<form method=POST action= >";                                         //form used to change status of order 
+		echo '<input type="text" name="order_num" value="Enter Order Number"/>';    //text box to know what order needs to change
+		echo '<input type="text" name="status" value="Enter Status"/>';             //text box to change address 
+		echo '<input type="submit" value="submit"/>';
+		echo "</form>";
+
+		echo "<br/>";
+		echo "<p>Delete Order</p>";
+		
+	        echo "<form method=POST action= >";                                         //form used to delete an order  
+		echo '<input type="text" name="delete_order" value="Enter Order Number"/>';
+		echo '<input type="submit" value="submit"/>';
+		echo "</form>";
+		
+		echo "<br/>"; //line spacing 
+		echo "<br/>"; //line spacing
+
+		if (!empty($_POST['change']) and !empty($_POST['order'])){                            //only execute prepared statement if there is a value in text box 
+			$rs = $pdo->prepare("UPDATE Orders SET Shipping_Num=?  WHERE Order_Num=?;"); //change the address 
+			$rs->execute(array($_POST['change'],$_POST['order']));
+			$successful = $rs->rowCount();                                                //check how many ros were affected by prepare statment 
+
+			if ($successful != 0){               //if prepare statement successful 
+				echo "The Shipping Address for Order Number " . $_POST['order'] . " has changed.";
+				echo "<br/>";
+			}
+			else{                               //if prepare statement not successful
+				echo "Enter correct Order Number and Valid Shipping Address.";
+				echo "<br/>";
+			}
+		}
+
+		if (!empty($_POST['status']) and !empty($_POST['order_num'])){
+			$prepared = $pdo->prepare("UPDATE Orders SET Status_Order=? WHERE Order_Num=?;"); 
+			$prepared->execute(array($_POST['status'],$_POST['order_num']));
+			$success = $prepared->rowCount();                      //check how many rows were affected
+
+			if ($success != 0){       //if prepare statement successful 
+				echo "The Status of Order Number " . $_POST['order_num'] . " has changed.";
+				echo "<br/>";
+			}
+			else {                   //if not successful
+				echo "Enter correct Order Number and Valid Status.";
+				echo "<br/>";
+			}
+		}
+
+	        if (!empty($_POST['delete_order'])){
+			$prepare = $pdo->prepare("DELETE FROM Orders WHERE Order_Num = ?;"); 
+			$prepare->execute(array($_POST['delete_order']));
+			$success = $prepare->rowCount();
+
+			if ($success != 0){      //if prepare statement successful
+				echo "The Order with Order Number " . $_POST['delete_order'] . " has been deleted.";
+			}
+			else{               
+				echo "Enter valid Order Number.";
+				echo "<br/>";
+			}
+		}
+
+		echo "<br/>";
+		echo "<h2>View Order</h2>";  //header
+
+		echo "<form method=POST action= >";                                        //form to get what order employee wants to see
+		echo '<input type="text" name="view_order" value="Enter Order Number"/>';  //text box to view a specific order 
+		echo '<input type="submit" value="submit"/>';
+		echo "</form>";
+		echo "<br/>";
+		echo "<br/>";
+
+		if (!empty($_POST['view_order'])){
+			$prepare = $pdo->prepare("SELECT * FROM Orders WHERE Order_Num = ?;");  
+			$success = $prepare->execute(array($_POST['view_order']));
+			
+			if (!$success){
+				echo "Enter valid Order Number.";
+				echo "<br/>";
+			}
+			else {                                                                   //if prepare succesful
+				$row = $prepare->fetch(PDO::FETCH_ASSOC);
+
+		        //Print order based on order_num
+				echo "Order Number: " . $row["Order_Num"] . "  Customer: " . $row["Customer_ID"]. "  Confirmation Number: " . $row["Confirmation_Num"] . "  Part Number: ". $row["Part_Num"] . "  Date Ordered: " . $row["Date_of_Order"] . "  Shipping Number: " . $row["Shipping_Num"] . "  Cost: $" . $row["Cost"] . " Amount: " . $row["Amount"] . " Status: ". $row["Status_Order"];
+			}
+			
+			echo "<br />";
+		}
+
+
+		echo "<br/>";		
+		echo "<h2> Inventory </h2>"; // print inventory header
+       	
+			
+	}
+	catch(PDOexception $e) {
+		echo "Connection to database failed: ".$e->getMessage();
+	}
+
+?>
+</body></html>		

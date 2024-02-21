@@ -1,0 +1,36 @@
+<html><head><title>Choice</title></head><body><pre>
+   <?php
+
+     error_reporting(E_ALL);
+
+     $username = 'z1863509';
+     $password = '2001May25';
+
+
+      try
+      {
+        $dsn = "mysql:host=courses;dbname=z1863509";
+        $pdo = new PDO($dsn, $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+        //customer?
+        echo "<form method=GET action= https://students.cs.niu.edu/~z1873203/employee.php>";
+        echo "<b>Are you an employee or customer?</b>";
+        echo "\n";
+        echo '<input type="submit" name="employee" value="employee"/> <br/>';
+        echo "</form>";
+
+        echo "<form method=GET action= https://students.cs.niu.edu/~z1863509/group_project.php>";
+        echo '<input type="submit" name="customer" value="customer"/> <br/>';
+        echo "</form>";
+
+     }
+
+     catch(PDOexception $e)
+     {
+       echo "Connection to database failed: " . $e->getMessage();
+     }
+
+    ?>
+
+</pre></body></html>

@@ -1,0 +1,95 @@
+<html><head><title>Checkout</title></head><body><pre>
+   <?php
+
+     function draw_table($rows)
+     {
+       if(empty($rows)) {echo "<p>No results found.</p>";}
+       else
+       {
+         echo "<table border=1 cellspacing=1>";
+         echo "<tr>";
+         foreach($rows[0] as $key => $item)
+         {
+           echo "<th>$key</th>";
+         }
+         echo "</tr>";
+         foreach($rows as $row)
+         {
+           echo "<tr>";
+           foreach($row as $key => $item)
+           {
+             echo "<td>$item</td>";
+           }
+           echo "</tr>";
+         }
+         echo "</table>";
+       }
+     }
+
+      echo "<h1>Checkout Page</h1>";
+
+      error_reporting(E_ALL);
+
+      $username = 'z1863509';  //change to yours
+      $password = '2001May25'; //change to yours
+
+      try
+      {
+
+        $dsn = "mysql:host=courses;dbname=z1863509";
+        $pdo = new PDO($dsn, $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+        //payment
+        echo "<form method=POST action= >";
+        echo "<b>payment</b>";
+        echo "\n";
+        echo "<p>insert Customer ID</p>";
+        echo '<input type="text" name="cust_id" value=""/> <br/>';
+        echo "<p>insert email</p>";
+        echo '<input type="text" name="email" value=""/> <br/>';
+        echo "<p>insert card info</p>";
+        echo '<input type="text" name="card_num" value=""/> <br/>';
+        echo '<input type="submit" name="pay" value="pay"/> <br/>';
+        echo '</form>';
+
+
+        //add person to database
+
+//SOMEHOW DO LOOP SO THAT ALL ROWS FORM Customer_Cart GOES INTO Orders!!!!!! IDK HOW TO DO IT!
+
+        if (!empty($_POST["cust_id"]) && !empty($_POST["email"]) && !empty($_POST["card_num"]) && isset($_POST["pay"]))
+        {
+
+          $random_order_num = random_int(10,99);
+          $random_confir_num = random_int(100000,999999);
+          $random_shipping_num = random_int(100000,999999);
+          $status = "confirmed";
+
+          $new_order = $pdo->prepare("INSERT INTO Orders (`Order_Num`, `Customer_ID`, `Confirmation_Num`, `Shipping_Num`, `Status_Order`) VALUES (?, ?, ?, ?, ?);");
+          $new_order->execute(array($random_order_num, $_POST["cust_id"], $random_confir_num, $random_shipping_num, $status));
+
+          $part = $pdo->prepare("UPDATE Orders JOIN Customer_Cart ON Orders.Customer_ID = Customer_Cart.Customer_ID SET Orders.Part_Num = Customer_Cart.Part_Num WHERE >
+          $part->execute(array($_POST["cust_id"]));
+          $date = $pdo->query("UPDATE Orders SET Date_of_Order = CAST(NOW() AS Date);");
+          $cost = $pdo->prepare("UPDATE Orders JOIN Customer_Cart ON Orders.Customer_ID = Customer_Cart.Customer_ID SET Orders.Cost = Customer_Cart.Subtotal WHERE Cust>
+          $cost->execute(array($_POST["cust_id"]));
+          $amount = $pdo->prepare("UPDATE Orders JOIN Customer_Cart ON Orders.Customer_ID = Customer_Cart.Customer_ID SET Orders.Amount = Customer_Cart.Amount WHERE Cu>
+          $amount->execute(array($_POST["cust_id"]));
+
+          $new_order_show = $pdo->prepare("SELECT * FROM Orders WHERE Customer_ID = ?;");
+          $new_order_show->execute(array($_POST["cust_id"]));
+          $rows = $new_order_show->fetchALL(PDO::FETCH_ASSOC);
+          draw_table($rows);
+
+          $cart_reset = $pdo->query("DELETE FROM Customer_Cart;");
+        }
+      }
+
+      catch(PDOexception $e)
+      {
+        echo "Connection to database failed: " . $e->getMessage();
+      }
+   ?>
+
+</pre></body></html>
